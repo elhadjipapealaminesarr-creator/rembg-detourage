@@ -1,0 +1,14 @@
+# Blueprint Render — déploie le service rembg en Web Service Docker sur l'offre GRATUITE.
+# Render détecte ce fichier à la racine du dépôt et propose le déploiement en un clic.
+services:
+  - type: web
+    name: rembg-detourage
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: REMBG_MODEL
+        value: u2netp
+      # Jeton partagé : à définir dans le tableau de bord Render (ne pas committer de secret ici).
+      - key: REMBG_TOKEN
+        sync: false
