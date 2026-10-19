@@ -3,8 +3,9 @@
 FROM python:3.11-slim
 
 # Dépendances système requises par rembg / onnxruntime / opencv.
+# libgomp1 = OpenMP, INDISPENSABLE à onnxruntime (sinon crash/segfault à l'inférence).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 \
+    libgl1 libglib2.0-0 libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
 # Utilisateur non-root (exigé par Hugging Face Spaces).

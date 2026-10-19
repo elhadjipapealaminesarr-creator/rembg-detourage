@@ -9,6 +9,17 @@ services:
     envVars:
       - key: REMBG_MODEL
         value: u2netp
+      # Limite les threads (CPU bridé) et la mémoire d'onnxruntime → évite les crashs sur l'offre 512 Mo.
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: MKL_NUM_THREADS
+        value: "1"
+      - key: NUMEXPR_NUM_THREADS
+        value: "1"
+      - key: ONNXRUNTIME_DISABLE_CPU_MEM_ARENA
+        value: "1"
       # Jeton partagé : à définir dans le tableau de bord Render (ne pas committer de secret ici).
       - key: REMBG_TOKEN
         sync: false
