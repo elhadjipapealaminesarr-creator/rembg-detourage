@@ -18,8 +18,18 @@ TOKEN = os.environ.get("REMBG_TOKEN", "").strip()
 # Mets REMBG_ALPHA=1 si ton hébergeur a un bon CPU.
 ALPHA = os.environ.get("REMBG_ALPHA", "0").strip() == "1"
 
-# Session chargée une seule fois au démarrage (le modèle est déjà pré-téléchargé dans l'image Docker).
-_session = new_session(MODEL)
+# Chargement PARESSEUX du modèle : on NE charge PAS au démarrage, sinon uvicorn n'ouvre pas son
+# port tout de suite et l'hébergeur croit que le service est mort (« no open ports detected »).
+# Le modèle se charge à la 1re requête /remove (il est déjà pré-téléchargé dans l'image → rapide).
+_session = None
+
+
+def _get_session():
+    global _session
+    if _session is None:
+        _session = new_session(MODEL)
+    return _session
+
 
 app = FastAPI(title="Rembg Détourage", version="1.0")
 
@@ -42,13 +52,14 @@ async def detourer(file: UploadFile = File(...), x_token: str = Header(default="
     if not data or len(data) < 100:
         return JSONResponse(status_code=400, content={"ok": False, "erreur": "Image vide."})
     try:
+        session = _get_session()
         if ALPHA:
-            sortie = remove(data, session=_session, alpha_matting=True,
+            sortie = remove(data, session=session, alpha_matting=True,
                             alpha_matting_foreground_threshold=240,
                             alpha_matting_background_threshold=15,
                             alpha_matting_erode_size=8)
         else:
-            sortie = remove(data, session=_session)
+            sortie = remove(data, session=session)
         return Response(content=sortie, media_type="image/png")
     except Exception as e:
         return JSONResponse(status_code=500, content={"ok": False, "erreur": str(e)})
